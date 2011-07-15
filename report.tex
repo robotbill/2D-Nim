@@ -1,0 +1,337 @@
+\documentclass[11pt]{article}
+\pdfpagewidth 8.5in
+\pdfpageheight 11in 
+\topmargin 0in
+\headheight 0in
+\headsep 0in
+\textheight 8.5in
+\textwidth 6.5in
+\oddsidemargin 0in
+\evensidemargin 0in
+\headsep 0.25in
+\parskip=10pt
+\usepackage{times}
+\usepackage{mathptmx}
+\usepackage{latexsym}
+
+\begin{document}
+
+\title{Two-Dimensional Nim}
+\author{Joe Lewis\\
+	Math of Games}
+\date{July 24, 2005}
+\maketitle
+\begin{abstract}
+This paper is an investigation of 2-Dimensional Nim as it was proposed in {\it Unsolved Problems in Combinatorial Games} problem 46. A position in the game is a rectangular matrix of non-negative integers.  At each move a player selects a row or column and subtracts any positive integer from any of the numbers in that row or column.
+\end{abstract}
+
+\section{Introduction}
+I started my investigation of 2-Dimensional Nim by writing a program in C++ to find the values of different positions.  Using the results of the program I came up with generalizations and attempted to prove them.  What follows is my analysis of 2-Dimensional Nim and a description of my C++ program.
+
+
+
+\section{General Observations}
+Rotating a position in 2-Dimensional Nim does not change the value of the game.  For example
+$$
+\left[
+\begin{array}{ c c }
+4 & 1 \\
+3 & 2
+\end{array}
+\right]
+\mbox{\hspace{0.1in}may be written \hspace{0.1in}}
+\left[
+\begin{array}{ c c}
+3 & 4 \\
+2 & 1
+\end{array}
+\right]
+$$
+Also rows and columns can be switched with other rows and columns, respectively, without affecting the value of the game.  For example
+$$
+\left[
+\begin{array}{ c c c}
+6 & 3 & 2 \\
+4 & 9 & 5 \\
+8 & 1 & 7
+\end{array}
+\right]
+\mbox{\hspace{0.1in}may be written \hspace{0.1in}}
+\left[
+\begin{array}{ c c c }
+2 & 3 & 6 \\
+5 & 9 & 4 \\
+7 & 1 & 8 \\
+\end{array}
+\right]
+\mbox{\hspace{0.1in} or \hspace{0.1in}}
+\left[
+\begin{array}{ c c c}
+4 & 9 & 5 \\
+6 & 3 & 2 \\
+8 & 1 & 7
+\end{array}
+\right]
+\mbox{\hspace{0.1in} etc.}
+$$
+
+
+\section{The Software}
+I wrote a command line tool to calculate the value of a game.  It does this recursively by checking the value of all the positions you can get to in one move.  The program checks a lot of the positions more than once because it is possible to get to many of the same positions by taking different initial moves.  In an attempt to eliminate a lot of duplicate computations, after a position value is found, the program adds the position and its value to a hash table.  This way if a position has already been solved the program can find it in the lookup table and get its value very quickly.
+
+To save even more processing time, the positions are stored in a normalized form.  Using the observation that switching rows and columns does not change the value of the game, the program finds the maximum heap in the matrix and moves it to the northwest corner of the matrix.  Then the program finds the maximum heap that is not in the first maximum's row or column and so on.  If there are two heaps of the same maximum size, the sums of their rows and columns are compared.  The heap with the largest sum is considered the maximum heap. For example
+$$
+\left[
+\begin{array}{ c c c}
+6 & 3 & 2 \\
+4 & 9 & 5 \\
+8 & 1 & 7
+\end{array}
+\right]
+\Longrightarrow
+\left[
+\begin{array}{ c c c}
+4 & 9 & 5 \\
+6 & 3 & 2 \\
+8 & 1 & 7
+\end{array}
+\right]
+\Longrightarrow
+\left[
+\begin{array}{ c c c}
+9 & 4 & 5 \\
+3 & 6 & 2 \\
+1 & 8 & 7
+\end{array}
+\right]
+\Longrightarrow
+\left[
+\begin{array}{ c c c }
+9 & 4 & 5 \\
+1 & 8 & 7 \\
+3 & 6 & 2
+\end{array}
+\right]
+$$
+This, of course, does not eliminate all duplicate computations, but it is good enough.
+
+Here is an example trace that shows the order that the program checks possible positions.  We'll start with normalized position.
+$
+\left[
+\begin{array}{ c c }
+4 & 3 \\
+1 & 2
+\end{array}
+\right]
+$
+First we check
+$
+\left[
+\begin{array}{ c c }
+0 & 0 \\
+1 & 2
+\end{array}
+\right]
+$
+then we check 
+$
+\left[
+\begin{array}{ c c }
+1 & 0 \\
+1 & 2
+\end{array}
+\right]
+$
+and so on. Until we get to
+$
+\left[
+\begin{array}{ c c }
+4 & 0 \\
+1 & 2
+\end{array}
+\right]
+$
+in which case we roll the 4 over and increment top right heap.
+$
+\left[
+\begin{array}{ c c }
+0 & 1 \\
+1 & 2
+\end{array}
+\right]
+$
+Then we start incrementing the top left heap again.  We repeat this process for each row and for each column.
+
+\section{Positions and Values}
+
+Most of the positions that the program solved have values that are $\ast S$ where $S$ is the sum of all the heaps.  For example
+$$
+\left[
+\begin{array}{ c c }
+4 & 2 \\
+3 & 0
+\end{array}
+\right]
+= \ast 9 = \ast \left( 4 + 2 + 3 + 0 \right)
+\mbox{\hspace{0.1in} and \hspace{0.1in}}
+\left[
+\begin{array}{ c c }
+5 & 3 \\
+2 & 1
+\end{array}
+\right]
+= \ast 11 = \ast \left( 5 + 3 + 2 + 1\right)
+$$
+\subsection{Interesting Positions}
+$$
+\left[
+\begin{array}{ c c }
+2 & 1 \\
+1 & 1
+\end{array}
+\right]
+= \ast \;\; \hspace{0.2in}
+\left[
+\begin{array}{ c c }
+2 & 0 \\
+1 & 2
+\end{array}
+\right]
+= \ast \;\; \hspace{0.2in}
+\left[
+\begin{array}{ c c }
+3 & 2 \\
+2 & 2
+\end{array}
+\right]
+= \ast \;\; \hspace{0.2in}
+\left[
+\begin{array}{ c c }
+4 & 1 \\
+1 & 3
+\end{array}
+\right]
+= \ast \;\;
+$$
+
+$$
+\left[
+\begin{array}{ c c }
+3 & 2 \\
+1 & 3
+\end{array}
+\right]
+= \ast \;\; \hspace{0.2in}
+\left[
+\begin{array}{ c c }
+2 & 2 \\
+2 & 1
+\end{array}
+\right]
+= \ast 2 \hspace{0.2in}
+\left[
+\begin{array}{ c c }
+4 & 2 \\
+2 & 3
+\end{array}
+\right]
+= \ast 2 \hspace{0.2in}
+\left[
+\begin{array}{ c c }
+3 & 1 \\
+1 & 2
+\end{array}
+\right]
+= \ast 2
+$$
+
+$$\left[
+\begin{array}{ c c }
+3 & 3 \\
+3 & 2
+\end{array}
+\right]
+= \ast 2 \hspace{0.2in}
+\left[
+\begin{array}{ c c }
+3 & 3 \\
+2 & 2
+\end{array}
+\right]
+= \ast 3 \hspace{0.2in}
+\left[
+\begin{array}{ c c }
+4 & 2 \\
+2 & 2
+\end{array}
+\right]
+= \ast 3 \hspace{0.2in}
+\left[
+\begin{array}{ c c }
+4 & 2 \\
+1 & 3
+\end{array}
+\right]
+= \ast 3
+$$
+
+$$
+\left[
+\begin{array}{ c c }
+3 & 3 \\
+3 & 1
+\end{array}
+\right]
+= \ast 3  \hspace{0.2in}
+\left[
+\begin{array}{ c c }
+4 & 3 \\
+2 & 3
+\end{array}
+\right]
+= \ast 4 \hspace{0.2in}
+\left[
+\begin{array}{ c c }
+4 & 3 \\
+3 & 2
+\end{array}
+\right]
+= \ast 4 \hspace{0.2in}
+\left[
+\begin{array}{ c c }
+5 & 1 \\
+1 & 2
+\end{array}
+\right]
+= \ast 5
+$$
+
+
+\section{Theorems etc.}
+\noindent{\bf Theorem 1:} The value of a $1\times n$ game of 2-Dimensional Nim, $\left[ h_1, h_2,\ldots, h_n \right]$ is $\ast\left( h_1+h_2+\ldots+h_n \right) $.
+
+\noindent{\bf Proof.}  \underline{Inductive Hypothesis:} The value of any $1 \times n$ game is $\ast S$, where $S$ is the sum of all the heaps, $S = h_1+h_2+\ldots+h_n$.
+\newline\underline{Base:} $S=0$, every heap in the matrix is of size 0, so there are no moves that can be made, therefore it is a P-position so its value is 0.  $0 = 0 = \ast 0 = \ast S$.  $S = 0$ holds.
+\newline $S = 1$, only one heap has anything in it.  So the only move is to subtract 1 from that heap, leaving a game of value 0.  So $value = \{0\} = \ast 1 = \ast S$.  $S = 1$ holds.
+\newline\underline{Induction:}  Assume that the value of a $1\times n$ game with sum $\leq S$ is $\ast S$.  Consider a $1\times n$ game with sum $S + 1$.  Since we can subtract any number from any of the heaps we can get to any sum less than $S + 1$.  By the Inductive Hypothesis we can get to games with nim values of $0, \ast, \ast 2,\ldots, \ast S$, so out game has the value $\{ 0, \ast, \ast 2,\ldots, \ast S \} $ which by the mex rule is $\ast S$. 
+\hfill{$\Box$}
+
+\noindent{\bf Theorem 2:}  In a $n \times m$ game, a position where only the diagonal heaps $\left(h_i{}_,{} _i  \right)$ are non-zero is a P-position (second player win) if and only if its diagonal elements form a P-position in ordinary nim.
+
+\noindent{\bf Proof:}  None of the non-zero elements share a row or column, so in a legal move a player can only change one heap.  This is the same as regular nim. \hfil{$\Box$}
+
+\noindent{\bf Theorem 3:}  All $2 \times 2$ games with the form 
+$
+\left[
+\begin{array}{ c c }
+a & b \\
+b & a
+\end{array}
+\right]
+$
+are of the value 0.
+
+\noindent{\bf Proof:} We show that this is a second player win.  By symmetry the first player only has three choices of places to move, $h_0{}_,{}_0,\: h_0{}_,{}_1$ or both $h_0{}_,{}_0 $ and $ h_0{}_,{}_1$.  If player one moves in $h_0{}_,{}_0$, player two responds by subtracting the same number from $h_1{}_,{}_1$.  Similarly if player one moves in $h_0{}_,{}_1$, player two responds by moving in $h_1{}_,{}_0$.  If player one chooses to move in both $h_0{}_,{}_0 $ and $ h_0{}_,{}_1$, then player two makes the corresponding move in $h_1{}_,{}_0 $ and $ h_1{}_,{}_1$.  Since the second player can always respond by copying the first player's move, the second player will move last and therefore win.
+\hfill{$\Box$}
+
+\end{document} 
