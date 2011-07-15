@@ -1,0 +1,23 @@
+This is a project from the Math of Games course that I took at The Evergreen
+State College in the summer of 2005. The goal was to analyze the game of
+2D Nim.
+
+
+From report.tex:
+
+Abstract
+--------
+This paper is an investigation of 2-Dimensional Nim as it was proposed in
+Unsolved Problems in Combinatorial Games problem 46. A position in the game
+is a rectangular matrix of non-negative integers. At each move a player selects
+a row or column and subtracts any positive integer from any of the numbers in that
+row or column.
+
+Introduction
+------------
+I started my investigation of 2-Dimensional Nim by writing a program in C++ to
+find the values of different positions. Using the results of the program I came
+up with generalizations and attempted to prove them. What follows is my analysis
+of 2-Dimensional Nim and a description of my C++ program.
+
+See report.tex for more details
